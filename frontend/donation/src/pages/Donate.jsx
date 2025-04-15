@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { donationService } from '../services/api.js';
 
 const Donate = () => {
   const [formData, setFormData] = useState({
@@ -22,23 +23,42 @@ const Donate = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Here you would typically send the data to your backend
-    alert('Thank you for your donation! We will contact you soon to arrange pickup.');
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      address: '',
-      medicineName: '',
-      quantity: '',
-      expiryDate: '',
-      condition: 'unopened',
-      additionalInfo: ''
-    });
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+    
+    try {
+      console.log('Submitting donation:', formData);
+      const response = await donationService.submitDonation(formData);
+      console.log('Donation submitted successfully:', response);
+      setSubmitSuccess(true);
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        address: '',
+        medicineName: '',
+        quantity: '',
+        expiryDate: '',
+        condition: 'unopened',
+        additionalInfo: ''
+      });
+      
+      alert('Thank you for your donation! We will contact you soon to arrange pickup.');
+    } catch (error) {
+      console.error('Error submitting donation:', error);
+      setSubmitError(error.response?.data?.message || 'Failed to submit donation. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -105,6 +125,17 @@ const Donate = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
           >
+            {submitSuccess && (
+              <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                Thank you for your donation! We will contact you soon to arrange pickup.
+              </div>
+            )}
+            
+            {submitError && (
+              <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                {submitError}
+              </div>
+            )}
             <div className="mb-8">
               <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Donor Information</h3>
               
@@ -253,9 +284,10 @@ const Donate = () => {
             <div className="text-center">
               <button
                 type="submit"
-                className="bg-teal-600 text-white font-bold py-3 px-8 rounded-md hover:bg-teal-700 transition-colors duration-300"
+                disabled={isSubmitting}
+                className={`bg-teal-600 text-white font-bold py-3 px-8 rounded-md hover:bg-teal-700 transition-colors duration-300 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                Submit Donation
+                {isSubmitting ? 'Submitting...' : 'Submit Donation'}
               </button>
             </div>
           </motion.form>

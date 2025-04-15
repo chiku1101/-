@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogIn, LogOut } from 'lucide-react';
+import { AuthContext } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, logout } = useContext(AuthContext);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+  
+  const handleLogout = () => {
+    logout();
   };
 
   return (
@@ -21,6 +27,23 @@ const Navbar = () => {
           <NavLink to="/about">About</NavLink>
           <NavLink to="/donate">Donate</NavLink>
           <NavLink to="/contact">Contact</NavLink>
+          {isAuthenticated ? (
+            <button 
+              onClick={handleLogout} 
+              className="flex items-center hover:text-teal-200 transition-colors duration-300"
+            >
+              <LogOut size={18} className="mr-1" /> Logout
+            </button>
+          ) : (
+            <>
+              <NavLink to="/login" className="flex items-center">
+                <LogIn size={18} className="mr-1" /> Login
+              </NavLink>
+              <NavLink to="/register" className="flex items-center">
+                Register
+              </NavLink>
+            </>
+          )}
         </div>
         
         {/* Mobile Menu Button */}
@@ -43,6 +66,30 @@ const Navbar = () => {
             <MobileNavLink to="/about" onClick={toggleMenu}>About</MobileNavLink>
             <MobileNavLink to="/donate" onClick={toggleMenu}>Donate</MobileNavLink>
             <MobileNavLink to="/contact" onClick={toggleMenu}>Contact</MobileNavLink>
+            {isAuthenticated ? (
+              <button 
+                onClick={() => {
+                  handleLogout();
+                  toggleMenu();
+                }} 
+                className="flex items-center text-lg hover:text-teal-200 transition-colors duration-300 w-full text-center py-2"
+              >
+                <LogOut size={18} className="mr-1" /> Logout
+              </button>
+            ) : (
+              <>
+                <MobileNavLink to="/login" onClick={toggleMenu}>
+                  <div className="flex items-center justify-center">
+                    <LogIn size={18} className="mr-1" /> Login
+                  </div>
+                </MobileNavLink>
+                <MobileNavLink to="/register" onClick={toggleMenu}>
+                  <div className="flex items-center justify-center">
+                    Register
+                  </div>
+                </MobileNavLink>
+              </>
+            )}
           </div>
         </motion.div>
       )}
